@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>出費メモ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f2f2f7;
+            --card: #ffffff;
+            --border: #e5e5ea;
+            --text: #1c1c1e;
+            --text-secondary: #8e8e93;
+            --text-muted: #aeaeb2;
+            --accent: #007aff;
+            --accent-light: #e5f2ff;
+            --expense: #ff3b30;
+            --expense-light: #ffe5e5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000;
+                --card: #1c1c1e;
+                --border: #38383a;
+                --text: #ffffff;
+                --text-secondary: #8e8e93;
+                --text-muted: #636366;
+                --accent: #0a84ff;
+                --accent-light: #1a3a5c;
+                --expense: #ff453a;
+                --expense-light: #3d1a1a;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 120px;
+        }
+
+        /* Header */
+        header {
+            padding: 12px 0 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        /* Week Navigation */
+        .week-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }
+
+        .week-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--bg);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .week-btn:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .week-info {
+            text-align: center;
+        }
+
+        .week-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .week-dates {
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* Week Summary */
+        .week-summary {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .week-total-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .week-total {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--expense);
+            margin: 4px 0;
+        }
+
+        .week-avg {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Quick Input */
+        .quick-input {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .amount-input {
+            flex: 1;
+            padding: 14px 16px;
+            font-size: 18px;
+            font-family: inherit;
+            font-weight: 600;
+            background: var(--bg);
+            border: none;
+            border-radius: 12px;
+            color: var(--text);
+            outline: none;
+        }
+
+        .amount-input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .add-btn {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            background: var(--expense);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .add-btn:hover {
+            opacity: 0.9;
+        }
+
+        .add-btn:active {
+            transform: scale(0.98);
+        }
+
+        .memo-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--bg);
+            border: none;
+            border-radius: 10px;
+            color: var(--text);
+            outline: none;
+            margin-top: 10px;
+        }
+
+        .memo-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Quick Amounts */
+        .quick-amounts {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .quick-amount {
+            padding: 8px 14px;
+            font-size: 13px;
+            font-family: inherit;
+            background: var(--bg);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-amount:hover {
+            background: var(--expense-light);
+            color: var(--expense);
+        }
+
+        /* Day List */
+        .day-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .day-card {
+            background: var(--card);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: var(--bg);
+            cursor: pointer;
+        }
+
+        .day-date {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .day-weekday {
+            width: 36px;
+            height: 36px;
+            background: var(--card);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .day-card.today .day-weekday {
+            background: var(--accent);
+            color: white;
+        }
+
+        .day-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .day-full-date {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .day-total {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--expense);
+        }
+
+        .day-total.zero {
+            color: var(--text-muted);
+        }
+
+        /* Expense List */
+        .expense-list {
+            padding: 0 16px 12px;
+        }
+
+        .expense-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .expense-item:last-child {
+            border-bottom: none;
+        }
+
+        .expense-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .expense-time {
+            font-size: 12px;
+            color: var(--text-muted);
+            min-width: 45px;
+        }
+
+        .expense-memo {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .expense-amount {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--expense);
+        }
+
+        .expense-delete {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+
+        .expense-item:hover .expense-delete {
+            opacity: 1;
+        }
+
+        .expense-delete:hover {
+            background: var(--expense-light);
+            color: var(--expense);
+        }
+
+        .no-expenses {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Day Chart */
+        .day-chart {
+            display: flex;
+            gap: 4px;
+            padding: 0 16px 16px;
+        }
+
+        .chart-bar-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chart-bar-bg {
+            width: 100%;
+            height: 60px;
+            background: var(--bg);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--expense);
+            border-radius: 4px;
+            transition: height 0.3s ease;
+        }
+
+        .chart-bar.today {
+            background: var(--accent);
+        }
+
+        .chart-label {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .chart-bar-container.today .chart-label {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💸 出費メモ</h1>
+        </header>
+
+        <!-- Week Navigation -->
+        <div class="week-nav">
+            <button class="week-btn" onclick="changeWeek(-1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <div class="week-info">
+                <div class="week-label" id="weekLabel">今週</div>
+                <div class="week-dates" id="weekDates">1/6 - 1/12</div>
+            </div>
+            <button class="week-btn" onclick="changeWeek(1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Week Summary -->
+        <div class="week-summary">
+            <div class="week-total-label">今週の合計</div>
+            <div class="week-total" id="weekTotal">¥0</div>
+            <div class="week-avg" id="weekAvg">1日平均 ¥0</div>
+        </div>
+
+        <!-- Day Chart -->
+        <div class="day-card">
+            <div class="day-chart" id="dayChart"></div>
+        </div>
+
+        <!-- Quick Input -->
+        <div class="quick-input">
+            <div class="input-row">
+                <input type="number" class="amount-input" id="amountInput" placeholder="¥ 金額">
+                <button class="add-btn" onclick="addExpense()">記録</button>
+            </div>
+            <input type="text" class="memo-input" id="memoInput" placeholder="メモ（任意）">
+            <div class="quick-amounts">
+                <button class="quick-amount" onclick="setAmount(100)">¥100</button>
+                <button class="quick-amount" onclick="setAmount(300)">¥300</button>
+                <button class="quick-amount" onclick="setAmount(500)">¥500</button>
+                <button class="quick-amount" onclick="setAmount(1000)">¥1,000</button>
+                <button class="quick-amount" onclick="setAmount(2000)">¥2,000</button>
+                <button class="quick-amount" onclick="setAmount(5000)">¥5,000</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value" id="todayTotal">¥0</div>
+                <div class="stat-label">今日</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="expenseCount">0回</div>
+                <div class="stat-label">今週の回数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="maxDay">-</div>
+                <div class="stat-label">最高額の日</div>
+            </div>
+        </div>
+
+        <!-- Day List -->
+        <div class="day-list" id="dayList"></div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'expense_memo_data';
+        const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+
+        let currentWeekStart = getWeekStart(new Date());
+        let data = loadData();
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            return { expenses: {} };
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+            d.setDate(diff);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        function getDateKey(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatDate(date) {
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+
+        function formatAmount(amount) {
+            return '¥' + amount.toLocaleString();
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function isToday(date) {
+            const today = new Date();
+            return getDateKey(date) === getDateKey(today);
+        }
+
+        function changeWeek(delta) {
+            currentWeekStart.setDate(currentWeekStart.getDate() + delta * 7);
+            updateUI();
+        }
+
+        function setAmount(amount) {
+            document.getElementById('amountInput').value = amount;
+            document.getElementById('amountInput').focus();
+        }
+
+        function addExpense() {
+            const amountInput = document.getElementById('amountInput');
+            const memoInput = document.getElementById('memoInput');
+            
+            const amount = parseInt(amountInput.value);
+            if (!amount || amount <= 0) return;
+
+            const today = getDateKey(new Date());
+            if (!data.expenses[today]) {
+                data.expenses[today] = [];
+            }
+
+            data.expenses[today].push({
+                id: generateId(),
+                amount: amount,
+                memo: memoInput.value.trim() || '',
+                time: new Date().toISOString()
+            });
+
+            saveData();
+            updateUI();
+
+            amountInput.value = '';
+            memoInput.value = '';
+            amountInput.focus();
+        }
+
+        function deleteExpense(dateKey, id) {
+            if (data.expenses[dateKey]) {
+                data.expenses[dateKey] = data.expenses[dateKey].filter(e => e.id !== id);
+                if (data.expenses[dateKey].length === 0) {
+                    delete data.expenses[dateKey];
+                }
+                saveData();
+                updateUI();
+            }
+        }
+
+        function getWeekDays() {
+            const days = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(currentWeekStart);
+                d.setDate(d.getDate() + i);
+                days.push(d);
+            }
+            return days;
+        }
+
+        function getDayTotal(dateKey) {
+            const expenses = data.expenses[dateKey] || [];
+            return expenses.reduce((sum, e) => sum + e.amount, 0);
+        }
+
+        function getWeekTotal() {
+            const days = getWeekDays();
+            return days.reduce((sum, d) => sum + getDayTotal(getDateKey(d)), 0);
+        }
+
+        function getWeekExpenseCount() {
+            const days = getWeekDays();
+            return days.reduce((sum, d) => {
+                const expenses = data.expenses[getDateKey(d)] || [];
+                return sum + expenses.length;
+            }, 0);
+        }
+
+        function updateUI() {
+            updateWeekNav();
+            updateWeekSummary();
+            updateDayChart();
+            updateStats();
+            renderDayList();
+        }
+
+        function updateWeekNav() {
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+
+            const today = new Date();
+            const thisWeekStart = getWeekStart(today);
+
+            let label = '';
+            if (getDateKey(currentWeekStart) === getDateKey(thisWeekStart)) {
+                label = '今週';
+            } else if (currentWeekStart < thisWeekStart) {
+                const weeksDiff = Math.round((thisWeekStart - currentWeekStart) / (7 * 24 * 60 * 60 * 1000));
+                label = `${weeksDiff}週間前`;
+            } else {
+                const weeksDiff = Math.round((currentWeekStart - thisWeekStart) / (7 * 24 * 60 * 60 * 1000));
+                label = `${weeksDiff}週間後`;
+            }
+
+            document.getElementById('weekLabel').textContent = label;
+            document.getElementById('weekDates').textContent = `${formatDate(currentWeekStart)} - ${formatDate(weekEnd)}`;
+        }
+
+        function updateWeekSummary() {
+            const total = getWeekTotal();
+            const days = getWeekDays();
+            const today = new Date();
+            
+            // Calculate average only for days that have passed
+            let daysElapsed = 0;
+            for (const d of days) {
+                if (d <= today) daysElapsed++;
+            }
+            const avg = daysElapsed > 0 ? Math.round(total / daysElapsed) : 0;
+
+            document.getElementById('weekTotal').textContent = formatAmount(total);
+            document.getElementById('weekAvg').textContent = `1日平均 ${formatAmount(avg)}`;
+        }
+
+        function updateDayChart() {
+            const days = getWeekDays();
+            const totals = days.map(d => getDayTotal(getDateKey(d)));
+            const maxTotal = Math.max(...totals, 1000); // Minimum scale of 1000
+
+            const chart = document.getElementById('dayChart');
+            chart.innerHTML = days.map((d, i) => {
+                const total = totals[i];
+                const height = (total / maxTotal) * 100;
+                const todayClass = isToday(d) ? 'today' : '';
+                
+                return `
+                    <div class="chart-bar-container ${todayClass}">
+                        <div class="chart-bar-bg">
+                            <div class="chart-bar ${todayClass}" style="height: ${height}%"></div>
+                        </div>
+                        <span class="chart-label">${WEEKDAYS[d.getDay()]}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            // Today total
+            const todayTotal = getDayTotal(getDateKey(new Date()));
+            document.getElementById('todayTotal').textContent = formatAmount(todayTotal);
+
+            // Expense count
+            const count = getWeekExpenseCount();
+            document.getElementById('expenseCount').textContent = `${count}回`;
+
+            // Max day
+            const days = getWeekDays();
+            let maxDay = null;
+            let maxAmount = 0;
+            for (const d of days) {
+                const total = getDayTotal(getDateKey(d));
+                if (total > maxAmount) {
+                    maxAmount = total;
+                    maxDay = d;
+                }
+            }
+            document.getElementById('maxDay').textContent = maxDay ? WEEKDAYS[maxDay.getDay()] : '-';
+        }
+
+        function renderDayList() {
+            const days = getWeekDays().reverse(); // Show newest first
+            const container = document.getElementById('dayList');
+
+            container.innerHTML = days.map(d => {
+                const dateKey = getDateKey(d);
+                const expenses = data.expenses[dateKey] || [];
+                const total = getDayTotal(dateKey);
+                const todayClass = isToday(d) ? 'today' : '';
+                const weekday = WEEKDAYS[d.getDay()];
+
+                let dateLabel = '';
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (isToday(d)) {
+                    dateLabel = '今日';
+                } else if (getDateKey(d) === getDateKey(yesterday)) {
+                    dateLabel = '昨日';
+                } else {
+                    dateLabel = `${d.getMonth() + 1}/${d.getDate()}`;
+                }
+
+                const expenseItems = expenses.length > 0 
+                    ? expenses.map(e => {
+                        const time = new Date(e.time);
+                        const timeStr = `${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`;
+                        return `
+                            <div class="expense-item">
+                                <div class="expense-info">
+                                    <span class="expense-time">${timeStr}</span>
+                                    <span class="expense-memo">${e.memo || '出費'}</span>
+                                </div>
+                                <span class="expense-amount">${formatAmount(e.amount)}</span>
+                                <button class="expense-delete" onclick="deleteExpense('${dateKey}', '${e.id}')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+                    }).join('')
+                    : '<div class="no-expenses">記録なし</div>';
+
+                return `
+                    <div class="day-card ${todayClass}">
+                        <div class="day-header">
+                            <div class="day-date">
+                                <div class="day-weekday">${weekday}</div>
+                                <div>
+                                    <div class="day-label">${dateLabel}</div>
+                                    <div class="day-full-date">${d.getMonth() + 1}月${d.getDate()}日</div>
+                                </div>
+                            </div>
+                            <div class="day-total ${total === 0 ? 'zero' : ''}">${formatAmount(total)}</div>
+                        </div>
+                        <div class="expense-list">
+                            ${expenseItems}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Enter key to add
+        document.getElementById('amountInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addExpense();
+        });
+        document.getElementById('memoInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addExpense();
+        });
+
+        // Init
+        updateUI();
+    </script>
+</body>
+</html>
